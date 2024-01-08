@@ -3,15 +3,18 @@
 
 
 int main() {
-    int dimension;
-    dimension = scanf("%d\n" ,&dimension); //Η διάσταση του δωματίου
-    int zoombaX, zoombaY;
-    zoombaX = scanf("%d", &zoombaX); //Η αρχική θέση της zoomba
-    zoombaY = scanf("%d", &zoombaY);
-    int targetX, targetY;
-    targetX = scanf("%d", &targetX); //Το σημείο που θα φτάσει η zoomba.
-    targetY = scanf("%d", &targetY);
+     int dimension;
+    if (scanf("%d", &dimension) != 1) {
+        fprintf(stderr, "Error reading dimension\n");
+        return 1;
+    }
 
+    int zoombaX, zoombaY, targetX, targetY;
+    if (scanf("%d %d %d %d", &zoombaX, &zoombaY, &targetX, &targetY) != 4) {
+        fprintf(stderr, "Error reading positions\n");
+        return 1;
+    }
+    
     int **room;
     room = malloc(dimension * sizeof(int*));
     if(!room) {
