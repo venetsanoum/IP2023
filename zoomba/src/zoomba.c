@@ -50,6 +50,39 @@ void printPath(Node* targetNode) { //Συνάρτηση που εκτυπώνε�
     }
 }
 
+//Συνάρτηση για την εύρεση της βέλτιστης διαδρομής από έναν κόμβο σε έναν άλλον
+void findPath(int **grid, int startX, int startY, int targetX, int targetY, int n) {
+
+    //Έλεγχος αν τα σημεία εκκίνησης και προορισμού είναι έγκυρα.
+    if (!isValid(grid, startX, startY, n) || !isValid(grid, targetX, targetY, n)) {
+        printf("Invalid start or target position.\n");
+        return;
+    }
+    //Δήλωση ανοιχτής λίστας, η οποία είναι μια λίστα προτεραιότητας και δήλωση της κλειστής λίστας όπου θα αποθηκεύονται οι κόμβοι (τα σημεία) που έχουν επισκεφθεί.
+    Node** openList = malloc(n * n * sizeof(Node*)); //Ενας πίνακας από δείκτες σε δομή Node.
+    int** closedList = malloc(n * sizeof(int*)); //Ενας δισδιάστατος πίνακας 
+
+    if (openList == NULL || closedList == NULL) { //Έλεγχος επιτυχίας της δυναμικής δέσμευσης της μνήμης
+        fprintf(stderr,"Memory allocation failed.\n");
+        return;
+    }
+
+    for (int i = 0; i < n; i++) { //Αρχικοποίηση της κλειστής λίστας(στην αρχη όλοι οι κόμβοι είναι απροσπέλαστοι)
+        closedList[i] = malloc(n * sizeof(int));
+        if(!closedList[i]) {
+            fprintf(stderr,"Failed to allocate memory for closed list\n");
+        }
+        memset(closedList[i], 0, n * sizeof(int)); //Αρχικοποίηση στο 0.
+    }
+    
+    int openListCount = 0; //Μετρητής των θέσεων που θα επισκεφθούμε
+    int H = calculateHeuristicValue(startX, startY, targetX, targetY); //Υπολογισμός της heuristic τιμης μεσω συνάρτησης
+    Node* startNode = createNode(startX, startY, 0, H);
+    startNode->f = startNode->g + startNode->h;
+
+    openList[openListCount++] = startNode; //Προστίθενται ο αρχικός κόμβος
+}
+
 int main() {
      int dimension;
     if (scanf("%d", &dimension) != 1) { //Διάσταση του δωματίου.
