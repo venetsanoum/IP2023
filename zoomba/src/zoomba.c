@@ -1,9 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
-//Συνάρτηση που βρίσκει τη βέλτιστη διαδρομή από ένα σημείο σε ένα άλλο.
-void findPath(int **grid, int startX, int startY, int targetX, int targetY, int n){
+#include <string.h>
 
+typedef struct Node { //Αυτοαναφορική δομή Node
+    int row, col;
+    int f, g, h;
+    struct Node* parent;
+} Node;
+
+Node* createNode(int row,int col, int g, int h) { //Συνάρτηση τύπου Node* που δημιουργεί έναν κόμβο με συγκεκριμένες παραμέτρους.
+    Node* newNode = malloc(sizeof(Node)); //Δεσμεύει μνήμη για μία δομή τύπου Node
+    newNode->row = row; //rows και cols καθορίζουν τις συντεταγμένες του κόμβου.
+    newNode->col = col;
+    newNode->g = g; //"Κόστος" από τον αρχικό κόμβο στον τρέχοντα κόμβο
+    newNode->h = h; //"Κόστος" από τον τρέχοντα κόμβο στον κομβο-προορισμό
+    newNode->f = g + h; //Γενική εκτίμηση για το "κόστος" από έναν κόμβο σε έναν άλλο.
+    newNode->parent = NULL;
+    return newNode; //Επιστρέφει έναν δείκτη στον κόμβο που δημιουργήθηκε.
 }
+
+int isValid(int **grid, int row, int col, int n) { /*Συνάρτηση που ελέγχει αν ένα σημείο του πίνακα είναι έγκυρο και μπορει να προσπελαστεί
+(αν υπάρχει 0 στο σημείο εκείνο και δεν έχουν ξεπεραστεί τα όρια του πίνακα).*/
+    return (row >= 0) && (row < n) && (col >= 0) && (col< n) && (grid[row][col] == 0);
+}
+
+int calculateHeuristicValue(int row, int col, int targetRow, int targetCol) { //Συνάρτηση που υπολογίζει τη τιμή heuristic, δηλαδή το κόστος από
+//ένα κόμβο μέχρι τον προορισμό.
+    return abs(row - targetRow) + abs(col - targetCol); //Η απόλυτη τιμή της διαφοράς της τρέχουσας γραμμής από τη γραμμή - στοχο συν
+    //την απόλυτη τιμή της διαφοράς της τρέχουσας στήλης με τη στήλη - στόχο.
+}
+
+
 
 int main() {
      int dimension;
@@ -38,15 +65,16 @@ int main() {
         for (int j = 0; j < dimension; j++) {
             char cell;
             if (scanf(" %c", &cell) != 1 || (cell != '0' && cell != '1')) { //Δέχεται έναν έναν χαρακτήρα και ελέγχει ότι είναι 0 ή 1.
-                fprintf(stderr, "Invalid input for room layout\n");
+                fprintf(stderr, "Invalid input for room layout\n"); //Αν δεν πληρούνται οι προυποθέσεις:
                 
-                for (int k = 0; k <= i; k++) {
+                for (int k = 0; k <= i; k++) { //αποδεσμεύεται η μνήμη για το κωδικοποιημένο δωμάτιο,
                     free(room[k]);
                 }
                 free(room);
                 return 1;
             }
-            room[i][j] = cell - '0'; // Μετατροπή χαρακτήρα σε ακέραιο
+            room[i][j] = cell - '0'; //αλλιώς αποθηκεύεται το 0 ή το 1(σε ακέραιο αριθμό).
+            //cell - '0': Μετατροπή χαρακτήρα σε ακέραιο.
         }
     }
 
