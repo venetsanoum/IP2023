@@ -3,9 +3,9 @@
 #include <string.h>
 
 typedef struct Node { //Αυτοαναφορική δομή Node
-    int row, col;
-    int f, g, h;
-    struct Node* parent;
+    int row, col; //Συντεταγμένες του κόμβου στο δωμάτιο
+    int f, g, h; //Τιμές των συναρτήσεων κόστους που θα δημιουργηθούν
+    struct Node* parent; //Δείκτης στον κόμβο γονέα.
 } Node;
 
 Node* createNode(int row,int col, int g, int h) { //Συνάρτηση τύπου Node* που δημιουργεί έναν κόμβο με συγκεκριμένες παραμέτρους.
@@ -30,7 +30,25 @@ int calculateHeuristicValue(int row, int col, int targetRow, int targetCol) { //
     //την απόλυτη τιμή της διαφοράς της τρέχουσας στήλης με τη στήλη - στόχο.
 }
 
+void printPath(Node* targetNode) { //Συνάρτηση που εκτυπώνει τη διαδρομή.
+    if (targetNode == NULL || targetNode->parent == NULL)
+        return; //Αν φτάσουμε στο τέλος σταματάει
 
+    printPath(targetNode->parent); //Καλείται αναδρομικά
+
+    Node* parent = targetNode->parent;
+    if (parent->row == targetNode->row) { //Αν ο κόμβος που βρισκόμαστε είναι στην ίδια γραμμή με τον στόχο, τότε κινούμαστε μόνο στις στήλες
+        if (parent->col < targetNode->col) //Αν ο στόχος είναι μεγαλύτερος από τον κόμβο που βρισκόματσε πάμε δεξιά,
+            printf("R");
+        else                               //αλλιώς αριστερά.
+            printf("L");
+    } else { //Αν δεν είναι στην ίδια σειρά, προσπαθούμε να τα φέρουμε κινούμενοι στις γραμμές
+        if (parent->row < targetNode->row) //Αν ο στόχος βρίσκεται πάνω (δηλαδη σε μικρότερη γραμμή) παμε κάτω
+            printf("D");
+        else                               //αλλιώς πάνω.
+            printf("U");
+    }
+}
 
 int main() {
      int dimension;
