@@ -1,30 +1,27 @@
+#include "complexlib.h"
 #include <math.h>
 
-typedef struct {
-double real;
-double imag;
-} complex;
-
-complex n;
-complex add (complex a, complex b) {
-    n.real = a.real + b.real;
-    n.imag = a.imag + b.imag;
-    return n;
+Complex add(Complex a, Complex b) { //Πρόσθεση
+    Complex result;
+    result.real = a.real + b.real;
+    result.imag = a.imag + b.imag;
+    return result;
 }
 
-complex substarction(complex a, complex b) {
-    n.real = a.real - b.real;
-    n.imag = a.imag - b.imag;
-    return n;
+Complex subtract(Complex a, Complex b) { //Αφαίρεση
+    Complex result;
+    result.real = a.real - b.real;
+    result.imag = a.imag - b.imag;
+    return result;
 }
 
-complex multiplication(complex a, complex b) {
-    n.real = (a.real * b.real) - (a.imag * b.imag);
-    n.imag = (a.imag * b.imag) + (a.real * b.real);
-    return n;
+Complex multiplication(Complex a, Complex b) { //Πολλαπλασιασμός
+    Complex result;
+    result.real = (a.real * b.real) - (a.imag * b.imag);
+    result.imag = (a.imag * b.imag) + (a.real * b.real);
+    return result;
 }
 
-double absolutevalue(complex a) {
-    return  sqrt(a.real * a.real + a.imag * a.imag);
-
+double absolutevalue(Complex a) { //Απόλυτη τιμή
+    return sqrt(a.real * a.real + a.imag * a.imag);
 }
