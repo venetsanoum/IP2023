@@ -81,6 +81,78 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
     startNode->f = startNode->g + startNode->h;
 
     openList[openListCount++] = startNode; //Προστίθενται ο αρχικός κόμβος
+
+    //Κύριος βρόχος του Α* Algorithm:
+    while (openListCount > 0) {//Όσο υπάρχουν ακόμα στοιχεία στην ανοιχτή λίστα
+        Node* currentNode;
+        currentNode = openList[0]; //Εξάγεται από τη λίστα το πρώτο στοιχείο
+        int currentIndex = 0;
+
+        for (int i = 1; i < openListCount; i++) { //Επιλέγεται ο κόμβος με τη χαμηλότερη f τιμή.Αν είναι ίσες επιλέγεται εκείνη με τη μικρότερη
+        //heuristic τιμή.
+            if (openList[i]->f < currentNode->f || (openList[i]->f == currentNode->f && openList[i]->h < currentNode->h)) {
+                currentNode = openList[i];
+                currentIndex = i;
+            }
+        }
+        //Αφαίρεση του τρέχοντος κόμβου από την ανοιχτή λίστα
+        for (int i = currentIndex; i < openListCount - 1; i++) {
+            openList[i] = openList[i + 1];
+        }
+        openListCount--;
+
+        int row = currentNode->row; //πάμε στην επόμενη γραμμή
+        int col = currentNode->col; //πάμε στην επόμενη στήλη.
+        closedList[row][col] = 1; //Ο κόμβος ελέγχθηκε.
+        
+        if (row == targetX && col == targetY) { //Αν έχουμε φτάσει στον επιθυμητό κόμβο εκτυπώνεται η διαδρομή.
+            printPath(currentNode);
+            printf("\n");
+            freeLists(openList, closedList, n); //Αποδέσμευση των λιστών.
+            return;
+        }
+        //(Σε περίπτωση που δεν φτάσαμε στον επιθυμητό κόμβο).
+        //Οι 4 θέσεις των δύο πινάκων αφορούν αριστερά, πάνω, κάτω, δεξιά.
+        int rowMoves[] = { -1, 0, 0, 1 }; //Στις γραμμές κινούμαστε αριστερά και δεξιά
+        int colMoves[] = { 0, -1, 1, 0 }; //Στις στήλες κινούμαστε πάνω και κάτω
+
+        for (int i = 0; i < 4; i++) {
+            int newRow = row + rowMoves[i]; //Γίνονται οι κινήσεις. Πρώτα αριστερά και οι στήλες δεν μεταβάλλονται κοκ.
+            int newCol = col + colMoves[i];
+            //Για κάθε γειτονική θέση:
+            if (isValid(grid, newRow, newCol, n) && !closedList[newRow][newCol]) { //Αν είναι έγκυρο το σημείο που φτάσαμε και το συγκεριμένο σημείο δεν έχει ελεγχθεί
+                int gNew = currentNode->g + 1; //Υπολογίζεται νέα g τιμη (η προηγούμενη +1),
+                int hNew = calculateHeuristicValue(newRow, newCol, targetX, targetY); //η νέα heuristic τιμή 
+                int fNew = gNew + hNew; // και η νέα f τιμή.
+
+                Node* newNode = createNode(newRow, newCol, gNew, hNew); //Δημιουργείται νέος κόμβος με τις νέες τιμές που υπολογίστηκαν
+                newNode->f = fNew;
+                newNode->parent = currentNode; //Ο γονιός του καινούργιου κόμβου είναι ο τρέχων κόμβος.
+                //Αν ο κόμβος είναι ήδη στην ανοιχτή λίστα ενημερώνουμε τη κατάσταση του.
+                int foundInOpenList = 0;
+                for (int j = 0; j < openListCount; j++) {
+                    if (openList[j]->row == newRow && openList[j]->col == newCol) { //Αν υπάρχει στην ανοιχτή λίστα(οταν βρεθεί ο επιθυμητός κόμβος)
+                        foundInOpenList = 1; //ενημερώνεται η σημαία foundInOpenList
+                        if (fNew < openList[j]->f) { //Αν η νέα f τιμή είναι καλύτερη σημαίνει οτι βρέθηκε καλύτερο μονοπάτι
+                        //άρα ανανεώνονται οι τιμές, αλλιώς δεν ανανεώνονται.
+                            openList[j]->f = fNew;
+                            openList[j]->g = gNew;
+                            openList[j]->h = hNew;
+                            openList[j]->parent = currentNode;
+                        }
+                        break; // Σταματάει το for loop όταν βρεθεί ο επιθυμητός κόμβος ώστε να αποφευχθούν περιττές επαναλήψεις.
+                    }
+                }
+                if (!foundInOpenList) { //Αν ο κόμβος δεν είναι στην ανοιχτή λίστα τον προσθέτουμε
+                    openList[openListCount++] = newNode;
+                }
+            }
+        }
+    }
+
+    printf("0\n"); //Αν δεν υπάρχει μονοπάτι εκτυπώνεται 0.
+    freeLists(openList, closedList, n); //Αποδέσμευση των λιστών.
+
 }
 
 int main() {
