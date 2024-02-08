@@ -111,6 +111,7 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
             freeLists(openList, closedList, n); //Αποδέσμευση των λιστών μεσω της συνάρτησης freeLists
             return;
         }
+      
 }
 
 int main() {
