@@ -81,6 +81,37 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
     startNode->f = startNode->g + startNode->h;
 
     openList[openListCount++] = startNode; //Προστίθενται ο αρχικός κόμβος
+
+        //Κύριος βρόχος του Α* Algorithm:
+    while (openListCount > 0) {//Όσο υπάρχουν ακόμα στοιχεία στην ανοιχτή λίστα
+        Node* currentNode;
+        currentNode = openList[0]; //Εξάγεται από τη λίστα το πρώτο στοιχείο
+        int currentIndex = 0;
+
+        for (int i = 1; i < openListCount; i++) { //Επιλέγεται ο κόμβος με τη χαμηλότερη f τιμή.Αν είναι ίσες επιλέγεται εκείνη με τη μικρότερη
+        //heuristic τιμή.
+            if (openList[i]->f < currentNode->f || (openList[i]->f == currentNode->f && openList[i]->h < currentNode->h)) {
+                currentNode = openList[i];
+                currentIndex = i;
+            }
+        }
+        //Αφαίρεση του τρέχοντος κόμβου από την ανοιχτή λίστα
+        for (int i = currentIndex; i < openListCount - 1; i++) {
+            openList[i] = openList[i + 1];
+        }
+        openListCount--;
+
+        int row = currentNode->row; //πάμε στην επόμενη γραμμή
+        int col = currentNode->col; //πάμε στην επόμενη στήλη.
+        closedList[row][col] = 1; //Ο κόμβος ελέγχθηκε.
+        
+        if (row == targetX && col == targetY) { //Αν έχουμε φτάσει στον επιθυμητό κόμβο εκτυπώνεται η διαδρομή.
+            printPath(currentNode);
+            printf("\n");
+            freeLists(openList, closedList, n); //Αποδέσμευση των λιστών μεσω της συνάρτησης freeLists
+            return;
+        }
+      
 }
 
 int main() {
