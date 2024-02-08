@@ -49,7 +49,15 @@ void printPath(Node* targetNode) { //Συνάρτηση που εκτυπώνε�
             printf("U");
     }
 }
-
+// Συνάρτηση που θα αποδεσμεύει τις openlist και closedlist.
+void freeLists(Node** openList, int** closedList, int n) {
+    for (int i = 0; i < n; i++) {
+        free(closedList[i]); //Αποδέσμευση μνήμης για closedlist
+        free(openList[i]); //Αποδέσμευση πρώτα κάθε struct Node χωριστά.
+    }
+    free(closedList);
+    free(openList); //Αποδέσμευση μνήμης για τον πίνακα από δείκτες
+}
 //Συνάρτηση για την εύρεση της βέλτιστης διαδρομής από έναν κόμβο σε έναν άλλον
 void findPath(int **grid, int startX, int startY, int targetX, int targetY, int n) {
 
