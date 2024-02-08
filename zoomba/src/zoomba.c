@@ -112,6 +112,7 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
             return;
         }
       
+    }
 }
 
 int main() {
