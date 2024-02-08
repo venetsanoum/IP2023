@@ -53,7 +53,6 @@ void printPath(Node* targetNode) { //Συνάρτηση που εκτυπώνε�
 void freeLists(Node** openList, int** closedList, int n) {
     for (int i = 0; i < n; i++) {
         free(closedList[i]); //Αποδέσμευση μνήμης για closedlist
-        free(openList[i]); //Αποδέσμευση πρώτα κάθε struct Node χωριστά.
     }
     free(closedList);
     free(openList); //Αποδέσμευση μνήμης για τον πίνακα από δείκτες
