@@ -10,6 +10,10 @@ typedef struct Node { //Αυτοαναφορική δομή Node
 
 Node* createNode(int row,int col, int g, int h) { //Συνάρτηση τύπου Node* που δημιουργεί έναν κόμβο με συγκεκριμένες παραμέτρους.
     Node* newNode = malloc(sizeof(Node)); //Δεσμεύει μνήμη για μία δομή τύπου Node
+    if(!newNode) { //Ελεγχος επιτυχίας της malloc
+        fprintf(stderr, "Failed to allocate memory for new node\n");
+        exit(1);
+    }
     newNode->row = row; //rows και cols καθορίζουν τις συντεταγμένες του κόμβου.
     newNode->col = col;
     newNode->g = g; //"Κόστος" από τον αρχικό κόμβο στον τρέχοντα κόμβο
@@ -62,8 +66,8 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
 
     //Έλεγχος αν τα σημεία εκκίνησης και προορισμού είναι έγκυρα.
     if (!isValid(grid, startX, startY, n) || !isValid(grid, targetX, targetY, n)) {
-        printf("Invalid start or target position.\n");
-        return;
+        fprintf(stderr,"Invalid start or target position.\n");
+        exit(1);
     }
     //Δήλωση ανοιχτής λίστας, η οποία είναι μια λίστα προτεραιότητας και δήλωση της κλειστής λίστας όπου θα αποθηκεύονται οι κόμβοι (τα σημεία) που έχουν επισκεφθεί.
     Node** openList = malloc(n * n * sizeof(Node*)); //Ενας πίνακας από δείκτες σε δομή Node.
@@ -71,13 +75,14 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
 
     if (openList == NULL || closedList == NULL) { //Έλεγχος επιτυχίας της δυναμικής δέσμευσης της μνήμης
         fprintf(stderr,"Memory allocation failed.\n");
-        return;
+        exit(1);
     }
 
     for (int i = 0; i < n; i++) { //Αρχικοποίηση της κλειστής λίστας(στην αρχη όλοι οι κόμβοι είναι απροσπέλαστοι)
         closedList[i] = malloc(n * sizeof(int));
         if(!closedList[i]) {
             fprintf(stderr,"Failed to allocate memory for closed list\n");
+            exit(1);
         }
         memset(closedList[i], 0, n * sizeof(int)); //Αρχικοποίηση στο 0.
     }
