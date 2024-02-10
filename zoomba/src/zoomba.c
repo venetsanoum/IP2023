@@ -70,7 +70,8 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
         exit(1);
     }
     //Δήλωση ανοιχτής λίστας, η οποία είναι μια λίστα προτεραιότητας και δήλωση της κλειστής λίστας όπου θα αποθηκεύονται οι κόμβοι (τα σημεία) που έχουν επισκεφθεί.
-    Node** openList = malloc(n * n * sizeof(Node*)); //Ενας πίνακας από δείκτες σε δομή Node.
+    Node** openList = malloc(n * n * sizeof(Node*)); //Ενας πίνακας από δείκτες σε δομές Node (προστίθενται όλοι οι κόμβοι και αφαιρούνται
+    //μόνο όταν επιλεχθούν για εξέταση και οι γειτονικοί κόμβοι τους έχουν ελεγχθεί)
     int** closedList = malloc(n * sizeof(int*)); //Ενας δισδιάστατος πίνακας 
 
     if (openList == NULL || closedList == NULL) { //Έλεγχος επιτυχίας της δυναμικής δέσμευσης της μνήμης
@@ -107,14 +108,14 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
                 currentIndex = i;
             }
         }
-        //Αφαίρεση του τρέχοντος κόμβου από την ανοιχτή λίστα
+        //Αφαίρεση του τρέχοντος κόμβου(αυτου με τη χαμηλότερη f τιμή που επιλέχθηκε) από την ανοιχτή λίστα
         for (int i = currentIndex; i < openListCount - 1; i++) {
             openList[i] = openList[i + 1];
         }
-        openListCount--;
+        openListCount--; //Μειώνονται και τα στοιχεία της λίστας κατά 1.
 
-        int row = currentNode->row; //πάμε στην επόμενη γραμμή
-        int col = currentNode->col; //πάμε στην επόμενη στήλη.
+        int row = currentNode->row; //πάμε στην γραμμή που βρίσκεται ο επιλεγμένος κόμβος
+        int col = currentNode->col; //πάμε στην στήλη που βρίσκεται ο επιλεγμένος κόμβος.
         closedList[row][col] = 1; //Ο κόμβος ελέγχθηκε.
         
         if (row == targetX && col == targetY) { //Αν έχουμε φτάσει στον επιθυμητό κόμβο εκτυπώνεται η διαδρομή.
@@ -145,7 +146,7 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
                 for (int j = 0; j < openListCount; j++) {
                     if (openList[j]->row == newRow && openList[j]->col == newCol) { //Αν υπάρχει στην ανοιχτή λίστα(οταν βρεθεί ο επιθυμητός κόμβος)
                         foundInOpenList = 1; //ενημερώνεται η σημαία foundInOpenList
-                        if (fNew < openList[j]->f) { //Αν η νέα f τιμή είναι καλύτερη σημαίνει οτι βρέθηκε καλύτερο μονοπάτι
+                        if (fNew < openList[j]->f) { //Αν η νέα f τιμή είναι καλύτερη από αυτή που είχε προηγουμένως, σημαίνει οτι βρέθηκε καλύτερο μονοπάτι
                         //άρα ανανεώνονται οι τιμές, αλλιώς δεν ανανεώνονται.
                             openList[j]->f = fNew;
                             openList[j]->g = gNew;
