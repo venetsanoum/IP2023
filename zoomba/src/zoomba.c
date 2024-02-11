@@ -4,34 +4,24 @@
 
 typedef struct Node { //Αυτοαναφορική δομή Node
     int row, col; //Συντεταγμένες του κόμβου στο δωμάτιο
-    int f, g, h; //Τιμές των συναρτήσεων κόστους που θα δημιουργηθούν
     struct Node* parent; //Δείκτης στον κόμβο γονέα.
 } Node;
-
-Node* createNode(int row,int col, int g, int h) { //Συνάρτηση τύπου Node* που δημιουργεί έναν κόμβο με συγκεκριμένες παραμέτρους.
-    Node* newNode = malloc(sizeof(Node)); //Δεσμεύει μνήμη για μία δομή τύπου Node
-    if(!newNode) { //Ελεγχος επιτυχίας της malloc
+// Συνάρτηση που δημιουργεί νέους κόμβους
+Node* createNode(int row, int col, Node* parent) {
+    Node* newNode = malloc(sizeof(Node)); //Δυναμική δέσμυεση μνήμης για μια δομή Node.
+    if (!newNode) { //Έλγεχος επιτυχίας της malloc
         fprintf(stderr, "Failed to allocate memory for new node\n");
         exit(1);
     }
-    newNode->row = row; //rows και cols καθορίζουν τις συντεταγμένες του κόμβου.
+    newNode->row = row; //Αρχικοποιούνται τα μέλη του
     newNode->col = col;
-    newNode->g = g; //"Κόστος" από τον αρχικό κόμβο στον τρέχοντα κόμβο
-    newNode->h = h; //"Κόστος" από τον τρέχοντα κόμβο στον κομβο-προορισμό
-    newNode->f = g + h; //Γενική εκτίμηση για το "κόστος" από έναν κόμβο σε έναν άλλο.
-    newNode->parent = NULL;
-    return newNode; //Επιστρέφει έναν δείκτη στον κόμβο που δημιουργήθηκε.
+    newNode->parent = parent;
+    return newNode;
 }
 
 int isValid(int **grid, int row, int col, int n) { /*Συνάρτηση που ελέγχει αν ένα σημείο του πίνακα είναι έγκυρο και μπορει να προσπελαστεί
 (αν υπάρχει 0 στο σημείο εκείνο και δεν έχουν ξεπεραστεί τα όρια του πίνακα).*/
     return (row >= 0) && (row < n) && (col >= 0) && (col< n) && (grid[row][col] == 0);
-}
-
-int calculateHeuristicValue(int row, int col, int targetRow, int targetCol) { //Συνάρτηση που υπολογίζει τη τιμή heuristic, δηλαδή το κόστος από
-//ένα κόμβο μέχρι τον προορισμό.
-    return abs(row - targetRow) + abs(col - targetCol); //Η απόλυτη τιμή της διαφοράς της τρέχουσας γραμμής από τη γραμμή - στοχο συν
-    //την απόλυτη τιμή της διαφοράς της τρέχουσας στήλης με τη στήλη - στόχο.
 }
 
 void printPath(Node* targetNode) { //Συνάρτηση που εκτυπώνει τη διαδρομή.
@@ -54,119 +44,71 @@ void printPath(Node* targetNode) { //Συνάρτηση που εκτυπώνε�
     }
     return; //Η συνάρτηση επιστρέφει για την εκτύπωση της επόμενης κίνησης.
 }
-// Συνάρτηση που θα αποδεσμεύει τις openlist και closedlist.
-void freeLists(Node** openList, int** closedList, int n) {
+void freefun(Node** queue, int** visited, int n) {
     for (int i = 0; i < n; i++) {
-        free(closedList[i]); //Αποδέσμευση μνήμης για closedlist
+        free(visited[i]); //Αποδέσμευση μνήμης για closedlist
     }
-    free(closedList);
-    free(openList); //Αποδέσμευση μνήμης για τον πίνακα από δείκτες
+    free(visited);
+    free(queue); //Αποδέσμευση μνήμης για τον πίνακα από δείκτες
 }
+
 //Συνάρτηση για την εύρεση της βέλτιστης διαδρομής από έναν κόμβο σε έναν άλλον
-void findPath(int **grid, int startX, int startY, int targetX, int targetY, int n) {
-
-    //Έλεγχος αν τα σημεία εκκίνησης και προορισμού είναι έγκυρα.
-    if (!isValid(grid, startX, startY, n) || !isValid(grid, targetX, targetY, n)) {
-        fprintf(stderr,"Invalid start or target position.\n");
+void BFS(int **grid, int startX, int startY, int targetX, int targetY, int n) {
+    int **visited = malloc(n * sizeof(int*)); //Δημιουργία δισδιάστατου πίνακα που θα αντιστοιχεί στον πίνακα του δωματίου
+    // και θα έχει 0 όταν το σημείο δεν έχει ελεγχθεί και 1 όταν ελεγχθεί.
+    if (!visited) { //Έλγεχος επιτυχίας της malloc.
+        fprintf(stderr, "Failed to allocate memory for visited array\n");
         exit(1);
     }
-    //Δήλωση ανοιχτής λίστας, η οποία είναι μια λίστα προτεραιότητας και δήλωση της κλειστής λίστας όπου θα αποθηκεύονται οι κόμβοι (τα σημεία) που έχουν επισκεφθεί.
-    Node** openList = malloc(n * n * sizeof(Node*)); //Ενας πίνακας από δείκτες σε δομές Node (προστίθενται όλοι οι κόμβοι και αφαιρούνται
-    //μόνο όταν επιλεχθούν για εξέταση και οι γειτονικοί κόμβοι τους έχουν ελεγχθεί)
-    int** closedList = malloc(n * sizeof(int*)); //Ενας δισδιάστατος πίνακας 
-
-    if (openList == NULL || closedList == NULL) { //Έλεγχος επιτυχίας της δυναμικής δέσμευσης της μνήμης
-        fprintf(stderr,"Memory allocation failed.\n");
-        exit(1);
-    }
-
-    for (int i = 0; i < n; i++) { //Αρχικοποίηση της κλειστής λίστας(στην αρχη όλοι οι κόμβοι είναι απροσπέλαστοι)
-        closedList[i] = malloc(n * sizeof(int));
-        if(!closedList[i]) {
-            fprintf(stderr,"Failed to allocate memory for closed list\n");
+    for (int i = 0; i < n; i++) {
+        visited[i] = calloc(n, n * sizeof(int)); //Calloc μιας και αρχικά θέλουμε όλα τα στοιχεία να είναι 0.
+        if (!visited[i]) { //Έλεγχος επιτυχίας της calloc
+            fprintf(stderr, "Failed to allocate memory for visited array\n");
+            free(visited);
             exit(1);
         }
-        memset(closedList[i], 0, n * sizeof(int)); //Αρχικοποίηση στο 0.
     }
-    
-    int openListCount = 0; //Μετρητής των θέσεων που θα επισκεφθούμε
-    int H = calculateHeuristicValue(startX, startY, targetX, targetY); //Υπολογισμός της heuristic τιμης μεσω συνάρτησης
-    Node* startNode = createNode(startX, startY, 0, H);
-    startNode->f = startNode->g + startNode->h;
 
-    openList[openListCount++] = startNode; //Προστίθενται ο αρχικός κόμβος
+    Node** queue = malloc(n * n * sizeof(Node*)); //Δημιουργείται ένας πίνακας από δείκτες σε δομές Node (αποτελεί μία ουρά).
+    if(!queue) { //Έλεγχος επιτυχίας της malloc.
+        fprintf(stderr, "Failed to allocate memory for queue\n");
+        exit(1);
+    }
+    int front = 0, rear = 0; //Τα βασικά στοιχεία μιας ουράς (η αρχή και το τέλος)
 
-    //Κύριος βρόχος του Α* Algorithm:
-    while (openListCount > 0) {//Όσο υπάρχουν ακόμα στοιχεία στην ανοιχτή λίστα
-        Node* currentNode;
-        currentNode = openList[0]; //Εξάγεται από τη λίστα το πρώτο στοιχείο
-        int currentIndex = 0;
+    visited[startX][startY] = 1; //Ο πρώτος κόμβος έχει επισκεφθεί
+    queue[rear++] = createNode(startX, startY, NULL); //Προστίθενται ο αρχικός κόμβος στο τέλος της ουράς.
 
-        for (int i = 1; i < openListCount; i++) { //Επιλέγεται ο κόμβος με τη χαμηλότερη f τιμή.Αν είναι ίσες επιλέγεται εκείνη με τη μικρότερη
-        //heuristic τιμή.
-            if (openList[i]->f < currentNode->f || (openList[i]->f == currentNode->f && openList[i]->h < currentNode->h)) {
-                currentNode = openList[i];
-                currentIndex = i;
-            }
-        }
-        //Αφαίρεση του τρέχοντος κόμβου(αυτου με τη χαμηλότερη f τιμή που επιλέχθηκε) από την ανοιχτή λίστα
-        for (int i = currentIndex; i < openListCount - 1; i++) {
-            openList[i] = openList[i + 1];
-        }
-        openListCount--; //Μειώνονται και τα στοιχεία της λίστας κατά 1.
+    while (front != rear) { //Όσο δεν έχει αδειάσει η ουρά.
+        Node* current = queue[front++]; //Εξάγεται το πρώτο στοιχείο από την ουρά (αποτελεί τον τρέχοντα κόμβο)
+        int row = current->row; //Κρατούνται οι συντεταγμένες του (γραμμές και στήλες)
+        int col = current->col;
 
-        int row = currentNode->row; //πάμε στην γραμμή που βρίσκεται ο επιλεγμένος κόμβος
-        int col = currentNode->col; //πάμε στην στήλη που βρίσκεται ο επιλεγμένος κόμβος.
-        closedList[row][col] = 1; //Ο κόμβος ελέγχθηκε.
-        
-        if (row == targetX && col == targetY) { //Αν έχουμε φτάσει στον επιθυμητό κόμβο εκτυπώνεται η διαδρομή.
-            printPath(currentNode);
+        if (row == targetX && col == targetY) { //Αν έχουμε φτάσει στο επιθυμητό σημείο:
+            printPath(current); //εκτυπώνεται το μονοπάτι
             printf("\n");
-            freeLists(openList, closedList, n); //Αποδέσμευση των λιστών.
+            freefun(queue, visited,n); //αποδεσμεύεται η μνήμη για την ουρά και τον πίνακα των επισκέψεων
             return;
         }
-        //(Σε περίπτωση που δεν φτάσαμε στον επιθυμητό κόμβο).
+
         //Οι 4 θέσεις των δύο πινάκων αφορούν αριστερά, πάνω, κάτω, δεξιά.
         int rowMoves[] = { -1, 0, 0, 1 }; //Στις γραμμές κινούμαστε αριστερά και δεξιά
         int colMoves[] = { 0, -1, 1, 0 }; //Στις στήλες κινούμαστε πάνω και κάτω
 
-        for (int i = 0; i < 4; i++) {
-            int newRow = row + rowMoves[i]; //Γίνονται οι κινήσεις. Πρώτα αριστερά και οι στήλες δεν μεταβάλλονται κοκ.
+        for (int i = 0; i < 4; i++) { //Γίνονται οι κινήσεις. Πρώτα αριστερά και οι στήλες δεν μεταβάλλονται κοκ.
+            int newRow = row + rowMoves[i];
             int newCol = col + colMoves[i];
-            //Για κάθε γειτονική θέση:
-            if (isValid(grid, newRow, newCol, n) && !closedList[newRow][newCol]) { //Αν είναι έγκυρο το σημείο που φτάσαμε και το συγκεριμένο σημείο δεν έχει ελεγχθεί
-                int gNew = currentNode->g + 1; //Υπολογίζεται νέα g τιμη (η προηγούμενη +1),
-                int hNew = calculateHeuristicValue(newRow, newCol, targetX, targetY); //η νέα heuristic τιμή 
-                int fNew = gNew + hNew; // και η νέα f τιμή.
 
-                Node* newNode = createNode(newRow, newCol, gNew, hNew); //Δημιουργείται νέος κόμβος με τις νέες τιμές που υπολογίστηκαν
-                newNode->f = fNew;
-                newNode->parent = currentNode; //Ο γονιός του καινούργιου κόμβου είναι ο τρέχων κόμβος.
-                //Αν ο κόμβος είναι ήδη στην ανοιχτή λίστα ενημερώνουμε τη κατάσταση του αν χρειάζεται.
-                int foundInOpenList = 0; //Σημαία για την ένδειξη ύπαρξης κόμβου στην ανοιχτή λίστα.
-                for (int j = 0; j < openListCount; j++) { //Διάσχιση της ανοιχτής λίστας
-                    if (openList[j]->row == newRow && openList[j]->col == newCol) { //Αν υπάρχει στην ανοιχτή λίστα(οταν βρεθεί ο επιθυμητός κόμβος)
-                        foundInOpenList = 1; //ενημερώνεται η σημαία foundInOpenList
-                        if (fNew < openList[j]->f) { //Αν η νέα f τιμή είναι καλύτερη από αυτή που είχε προηγουμένως, σημαίνει οτι βρέθηκε καλύτερο μονοπάτι
-                        //άρα ανανεώνονται οι τιμές, αλλιώς δεν ανανεώνονται.
-                            openList[j]->f = fNew;
-                            openList[j]->g = gNew;
-                            openList[j]->h = hNew;
-                            openList[j]->parent = currentNode;
-                        }
-                        break; // Σταματάει το for loop όταν βρεθεί ο επιθυμητός κόμβος ώστε να αποφευχθούν περιττές επαναλήψεις.
-                    }
-                }
-                if (!foundInOpenList) { //Αν ο κόμβος δεν είναι στην ανοιχτή λίστα τον προσθέτουμε
-                    openList[openListCount++] = newNode;
-                }
+            if (isValid(grid, newRow, newCol, n) && !visited[newRow][newCol]) { //Αν το σημείο είναι έγκυρο και δεν έχει ελεγχθεί:
+                visited[newRow][newCol] = 1; //Ενημερώνεται η κατάσταση του στον πίνακα visited[]
+                queue[rear++] = createNode(newRow, newCol, current); //και πτοστίθεται στο τέλος της ουράς (και γονέα τον τρέχοντα κόμβο)
             }
         }
     }
 
-    printf("0\n"); //Αν δεν υπάρχει μονοπάτι εκτυπώνεται 0.
-    freeLists(openList, closedList, n); //Αποδέσμευση των λιστών.
-
+    printf("0\n"); //Αν η ουρά έχει αδειάσει και δεν έχει εκτυπωθεί μονοπάτι σημαίνει ότι δεν υπάρχει.
+    freefun(queue, visited, n); // και αποδεσμεύεται η μνήμη που δεσμεύτηκε.
+    return;
 }
 
 int main() {
@@ -215,7 +157,7 @@ int main() {
         }
     }
 
-    findPath(room, zoombaX, zoombaY, targetX, targetY, dimension);//Κλήση συνάρτησης για την εύρεση της βέλτιστης διαδρομής 
+    BFS(room, zoombaX, zoombaY, targetX, targetY, dimension);//Κλήση συνάρτησης για την εύρεση της βέλτιστης διαδρομής 
 
     for (int i = 0; i < dimension; i++) {//Αποδέσμευση του πίνακα για το δωμάτιο.
         free(room[i]);
