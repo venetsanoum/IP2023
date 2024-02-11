@@ -142,9 +142,9 @@ void findPath(int **grid, int startX, int startY, int targetX, int targetY, int 
                 Node* newNode = createNode(newRow, newCol, gNew, hNew); //Δημιουργείται νέος κόμβος με τις νέες τιμές που υπολογίστηκαν
                 newNode->f = fNew;
                 newNode->parent = currentNode; //Ο γονιός του καινούργιου κόμβου είναι ο τρέχων κόμβος.
-                //Αν ο κόμβος είναι ήδη στην ανοιχτή λίστα ενημερώνουμε τη κατάσταση του.
-                int foundInOpenList = 0;
-                for (int j = 0; j < openListCount; j++) {
+                //Αν ο κόμβος είναι ήδη στην ανοιχτή λίστα ενημερώνουμε τη κατάσταση του αν χρειάζεται.
+                int foundInOpenList = 0; //Σημαία για την ένδειξη ύπαρξης κόμβου στην ανοιχτή λίστα.
+                for (int j = 0; j < openListCount; j++) { //Διάσχιση της ανοιχτής λίστας
                     if (openList[j]->row == newRow && openList[j]->col == newCol) { //Αν υπάρχει στην ανοιχτή λίστα(οταν βρεθεί ο επιθυμητός κόμβος)
                         foundInOpenList = 1; //ενημερώνεται η σημαία foundInOpenList
                         if (fNew < openList[j]->f) { //Αν η νέα f τιμή είναι καλύτερη από αυτή που είχε προηγουμένως, σημαίνει οτι βρέθηκε καλύτερο μονοπάτι
@@ -184,14 +184,14 @@ int main() {
 
     int **room; //Δυναμική δέσμευση μνήμης για το κωδικοποιημένο δωμάτιο
     room = malloc(dimension * sizeof(int*));
-    if(!room) {
+    if(!room) { // Έλεγχος επιτυχίας της malloc
         fprintf(stderr, "Failed to allocate memory\n");
         return 1;
     }
 
     for (int i = 0; i < dimension; i++) {
         room[i] = malloc(dimension * sizeof(int));
-        if(!room[i]) {
+        if(!room[i]) { // Έλεγχος επιτυχίας της malloc
             fprintf(stderr, "Failed to allocate memory\n");
             free(room);
         }
