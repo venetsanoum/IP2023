@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef struct Node { //Αυτοαναφορική δομή Node
     int row, col; //Συντεταγμένες του κόμβου στο δωμάτιο
@@ -44,12 +43,22 @@ void printPath(Node* targetNode) { //Συνάρτηση που εκτυπώνε�
     }
     return; //Η συνάρτηση επιστρέφει για την εκτύπωση της επόμενης κίνησης.
 }
+//Συνάρτηση που αποδεσμεύει χώρο για την ουρά και τον πίνακα που δημιουργήθηκαν
 void freefun(Node** queue, int** visited, int n) {
     for (int i = 0; i < n; i++) {
         free(visited[i]); //Αποδέσμευση μνήμης για closedlist
     }
     free(visited);
     free(queue); //Αποδέσμευση μνήμης για τον πίνακα από δείκτες
+}
+//Συνάρτηση που αποδεσμεύει τη μνήμη που δεσμεύτηκε για κάθε κόμβο
+void freeNodes(Node* current) {
+    if(current == NULL) 
+        return;
+    
+    freeNodes(current->parent); //Καλείται αναδρομικά 
+    free(current); //και απελευθερώνεται η μνήμη για κάθε κόμβο
+    return;
 }
 
 //Συνάρτηση για την εύρεση της βέλτιστης διαδρομής από έναν κόμβο σε έναν άλλον
@@ -83,10 +92,11 @@ void BFS(int **grid, int startX, int startY, int targetX, int targetY, int n) {
         Node* current = queue[front++]; //Εξάγεται το πρώτο στοιχείο από την ουρά (αποτελεί τον τρέχοντα κόμβο)
         int row = current->row; //Κρατούνται οι συντεταγμένες του (γραμμές και στήλες)
         int col = current->col;
-
+    
         if (row == targetX && col == targetY) { //Αν έχουμε φτάσει στο επιθυμητό σημείο:
             printPath(current); //εκτυπώνεται το μονοπάτι
             printf("\n");
+            freeNodes(current); //αποδεσμεύεται η μνήμη για κάθε κόμβο που δημιουργήθηκε
             freefun(queue, visited,n); //αποδεσμεύεται η μνήμη για την ουρά και τον πίνακα των επισκέψεων
             return;
         }
@@ -105,8 +115,7 @@ void BFS(int **grid, int startX, int startY, int targetX, int targetY, int n) {
             }
         }
     }
-
-    printf("0\n"); //Αν η ουρά έχει αδειάσει και δεν έχει εκτυπωθεί μονοπάτι σημαίνει ότι δεν υπάρχει.
+    printf("0\n"); //Αν δεν βρέθηκε μονοπάτι τυπώνεται 0.
     freefun(queue, visited, n); // και αποδεσμεύεται η μνήμη που δεσμεύτηκε.
     return;
 }
